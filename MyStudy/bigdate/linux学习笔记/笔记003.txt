@@ -1,0 +1,23 @@
+﻿1. df -h 查看磁盘的使用状况  命令：df -h
+2. du -h 查看文件的使用状况  命令： du -h filename
+3. yum install -y tree 
+4. mkdir -p a/b/c 
+5. cp :  cp -r a b  将a 目录copy一份 命名为b
+         cp  c d    将c 文件 copy一份 命名为d
+6. ln： 硬链接  ：比如 a 与 b连接，a改变，b则跟着改变；b改变，a也跟着改变 ，但删除b，a还是存在，相当于copy的一份 语法：ln a   b
+        软连接：  a-->b  语法： ln -s a b ,a变 b变，如果b被删除，a链接到b报错
+7.stat 元数据
+8.touch  两个作用：1.更新一次文件时间  2.创建一个文件
+9. more /less /head /tail  四种查看文件方式
+    eg: head -10 a  查看a文件前10行
+        tail -f a  可用于监控a文件的变化，a改变的值直接可以打印在终端
+10. | 管道  命令： echo "/" | xargs ls -l  “|” 之前的输出 作为 “|” 之后的输入
+            输出文件某一行: head -5 profile | tail -l  
+
+11.清空文件的几种命令：
+         truncate -s 0 test.txt   -s参数用来设定文件的大小，清空文件，就设定为0；
+         true > test.txt 
+         echo -n "" > test.txt    ==>要加上"-n"参数，默认情况下会"\n"，也就是回车符
+
+         查看文件大小 ： du -h filename
+         

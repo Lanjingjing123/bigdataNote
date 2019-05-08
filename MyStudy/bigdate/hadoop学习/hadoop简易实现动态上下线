@@ -1,0 +1,34 @@
+1. 上线dataNode
+    1.1 配置和其他dataNode一样的环境（jdk,hadoop）
+    1.2 在nameNode的hdfs-site.xml增加如下配置    
+        <property>
+            <name>dfs.host</name>
+            value>/opt/sxt/hadoop-2.6.5/etc/hadoop/dfs.include</value>
+        </property>
+      
+    注：dfx.include 文件中配置可上线的dataNode,如下（node09为新增）
+        node06
+        node07
+        node08
+        node09
+    1.3 在nameNode中进行刷新节点配置
+       # hdfs dfsadmin -refreshNodes
+    1.4 在node09启动dataNode
+       # hadoop-daemon.sh start datanode
+    1.5 查看节点状态，确保dataNode启动成功
+        # hdfs dfsadmin -report 
+        
+    上线完成之后记得 将/opt/sxt/hadoop-2.6.5/etc/hadoop/slaves中追加：node09（也可以提前加入）
+
+2. 下线dataNode
+    2.1 在nameNode的hdfs-site.xml增加如下配置:
+     <property>
+        <name>dfs.host.exclude</name>
+        <value>/opt/sxt/hadoop-2.6.5/etc/hadoop/dfs.exclude</value>
+    </property>
+    2.2 dfs.exclude添加dataNode(node09)
+    2.3 在nameNode中进行刷新节点配置
+        # hdfs dfsadmin -refreshNodes
+    2.4 查看节点状态，确保dataNode(node09)下线成功成功
+        # hdfs dfsadmin -report 
+    

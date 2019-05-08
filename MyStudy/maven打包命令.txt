@@ -1,0 +1,4 @@
+﻿mvn clean package -Dmaven.test.skip=true 
+mvn clean install -Dmaven.test.skip=true -- 跳过测试类
+mvn clean compile package -Dmaven.test.skip=true
+mvn clean compile install -Dmaven.test.skip=true

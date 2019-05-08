@@ -1,0 +1,92 @@
+ ############################################# shell编程 基础 #########################
+ 1.shell的生命周期
+    每一个shell都有一个bash，shell是壳，bash是核   shell——解释器    bash——启动器
+2. 脚本本质
+    - #！/bin/bash      文件首行放一个这个，意味着在文件里面启动一个子bash，文件首行不加也是默认启动一个子bash
+    - #! /usr/bin/python 
+3. 读取方式
+    - 当前shell（bash）: source/. 
+    - 新建shell: /bin/bash file / ./file.sh  (file.sh增加执行权限：chmod +x file.sh)
+4. 文件开启子bash会继承 父bash export后的值，管道开启子bash 不用export也能继承
+
+5. ``  反引号作用：预先执行     eg: echo "`echo "ljj"`"   result: ljj
+    $()            预先执行    eg: abc=$(echo $(echo "ljj")) 
+                                    echo $abc            result:ljj
+6. 看一个命令是否执行成功 ： $?
+   command: echo $? 
+    result: 0/非0     0-成功，非0-失败
+7. 算术表达式 : let
+  方式1：    [root@node02 sh]# a=1
+            [root@node02 sh]# b=1
+            [root@node02 sh]# let c=$a+$b
+            [root@node02 sh]# echo $c
+            2
+            [root@node02 sh]# 
+  方式2：
+            [root@node02 sh]# e=$((a+b))
+            [root@node02 sh]# echo $e
+            2   
+  自增：
+            [root@node02 sh]# ((a++))
+            [root@node02 sh]# echo $a
+            2 
+  自减：
+            [root@node02 sh]# ((a--))
+            [root@node02 sh]# echo $a
+            1
+
+8. 条件表达式（Evaluate conditional expression）：test 
+    1. 可用于文件操作
+    2. 可用于字符串操作
+    3. 可用于其他操作
+    注：大于：gt(greater than),小于：lt(less than)，等于：eq(eual),
+        不等于：ne(not equal),小于等于：le(less equal),大于等于：ge(greater equal)
+    command: test 2 -gt 3    
+             echo $?      用 $？判断是否存在？
+
+    简单用法： [ 2 -gt 3 ]    -----可用[ ]替换test，中括号里面必须有空格，不能为[2 -gt 3]
+9.  $?   判断执行为 true or false
+    $#  shell 执行后面的参数个数
+10. if语法使用
+        if: if COMMANDS; then COMMANDS; [ elif COMMANDS; then COMMANDS; ]... [ else COMMANDS; ] fi
+        eg:
+            if ls /share ;
+                then echo "exist";
+            elif ls /tmp;
+                then echo cd /tmp;
+            else "directories is not exist";
+            fi
+
+11. while循环的使用：
+    while: while COMMANDS; do COMMANDS; done
+      eg：
+            while [ $a -gt 0 ];
+                do ((a--));
+                echo $a;
+            done
+      
+12. for循环的使用
+       for: for NAME [in WORDS ... ] ; do COMMANDS; done    ---------增强for循环
+            for (( exp1; exp2; exp3 )); do COMMANDS; done   ---------普通for循环
+    遍历1-10：
+    ljj=(1 2 3 4 5 6 7 8 9 10)
+    for i in ${ljj[@]};   ---------------@代表遍历所有
+        do echo $i;
+    done
+ <==>   
+    for i in ${ljj[*]};  ----------------*代表数组长度
+        do echo $i;
+    done
+
+    遍历1-10：
+    for ((i=1;i<10;i++));
+        do echo $i ;
+    done
+    注：
+        echo ${#ljj[*]}  --------打印数组长度
+        echo ${#ljj[@]}  --------打印数组长度
+    for i in `seq 10`;   ----------------- ` ` 反引为提前执行
+        do echo $i ;
+    done
+    注：
+        seq 10为数值序列

@@ -1,0 +1,158 @@
+一、数据
+1,小明1,LOL-Book-Movie,beijing:shangxuetang-shanghai:pudong
+2,小明2,LOL-Book-Movie,beijing:shangxuetang-shanghai:pudong
+3,小明3,LOL-Book-Movie,beijing:shangxuetang-shanghai:pudong
+4,小明4,LOL-Book-Movie,beijing:shangxuetang-shanghai:pudong
+5,小明5,LOL-Book-Movie,beijing:shangxuetang-shanghai:pudong
+6,小明6,LOL-Book-Movie,beijing:shangxuetang-shanghai:pudong
+7,小明7,LOL-Book-Movie,beijing:shangxuetang-shanghai:pudong
+8,小明8,LOL-Book-Movie,beijing:shangxuetang-shanghai:pudong
+9,小明9,LOL-Book-Movie,beijing:shangxuetang-shanghai:xxxx
+
+11,小明1,LOL-Book-Movie,beijing:shangxuetang-shanghai:pudong
+12,小明2,LOL-Book-Movie,beijing:shangxuetang-shanghai:pudong
+13,小明3,LOL-Book-Movie,beijing:shangxuetang-shanghai:pudong
+14,小明4,LOL-Book-Movie,beijing:shangxuetang-shanghai:pudong
+15,小明5,LOL-Book-Movie,beijing:shangxuetang-shanghai:pudong
+16,小明6,LOL-Book-Movie,beijing:shangxuetang-shanghai:pudong
+17,小明7,LOL-Book-Movie,beijing:shangxuetang-shanghai:pudong
+18,小明8,LOL-Book-Movie,beijing:shangxuetang-shanghai:pudong
+19,小明9,LOL-Book-Movie,beijing:shangxuetang-shanghai:xxxx
+
+21,小明1,LOL-Book-Movie,beijing:shangxuetang-shanghai:pudong
+22,小明2,LOL-Book-Movie,beijing:shangxuetang-shanghai:pudong
+23,小明3,LOL-Book-Movie,beijing:shangxuetang-shanghai:pudong
+24,小明4,LOL-Book-Movie,beijing:shangxuetang-shanghai:pudong
+25,小明5,LOL-Book-Movie,beijing:shangxuetang-shanghai:pudong
+26,小明6,LOL-Book-Movie,beijing:shangxuetang-shanghai:pudong
+27,小明7,LOL-Book-Movie,beijing:shangxuetang-shanghai:pudong
+28,小明8,LOL-Book-Movie,beijing:shangxuetang-shanghai:pudong
+29,小明9,LOL-Book-Movie,beijing:shangxuetang-shanghai:xxxx
+二、SQL操作
+
+1.建表（内部表）:
+CREATE  TABLE  psn6(
+    id int,
+    name string,
+    likes ARRAY < string >,
+    address  MAP < string, string >
+) 
+
+ROW FORMAT
+DELIMITED FIELDS TERMINATED BY ','
+COLLECTION ITEMS TERMINATED BY '-'
+MAP KEYS TERMINATED BY ':';
+
+2.数据导入语法（DML）：
+    LOAD DATA LOCAL INPATH '/root/data1'  INTO TABLE psn0
+
+3.查看表信息：
+     hive> desc formatted psn0;
+        OK
+        # col_name            	data_type           	comment             
+                
+        id                  	int                 	                    
+        name                	string              	                    
+        likes               	array<string>       	                    
+        address             	map<string,string>  	                    
+                
+        # Detailed Table Information	 	 
+        Database:           	default             	 
+        Owner:              	root                	 
+        CreateTime:         	Tue Apr 09 17:40:26 CST 2019	 
+        LastAccessTime:     	UNKNOWN             	 
+        Protect Mode:       	None                	 
+        Retention:          	0                   	 
+        Location:           	hdfs://mycluster/user/hive/warehouse/psn0	 
+        Table Type:         	MANAGED_TABLE     ----------------------------内部表  	 
+        Table Parameters:	 	 
+            COLUMN_STATS_ACCURATE	true                
+            numFiles            	1                   
+            numRows             	0                   
+            rawDataSize         	0                   
+            totalSize           	556                 
+            transient_lastDdlTime	1554803452          
+                
+        # Storage Information	 	 
+        SerDe Library:      	org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe	 
+        InputFormat:        	org.apache.hadoop.mapred.TextInputFormat	 
+        OutputFormat:       	org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat	 
+        Compressed:         	No                  	 
+        Num Buckets:        	-1                  	 
+        Bucket Columns:     	[]                  	 
+        Sort Columns:       	[]                  	 
+        Storage Desc Params:	 	 
+            colelction.delim    	-                   
+            field.delim         	,                   
+            mapkey.delim        	:                   
+            serialization.format	,                   
+        Time taken: 0.245 seconds, Fetched: 37 row(s)
+    
+    4. 外部表建立
+        CREATE EXTERNAL TABLE  psn1(
+        id int,
+        name string,
+        likes ARRAY < string >,
+        address  MAP < string, string >
+        ) 
+    
+        ROW FORMAT
+        DELIMITED FIELDS TERMINATED BY ','
+        COLLECTION ITEMS TERMINATED BY '-'
+        MAP KEYS TERMINATED BY ':';
+    5. 外部表与内部表的区别
+        ** 分别删除内部表和外部表，发现内部表删除的时候 数据跟元数据一起删除；外部表删除只会删除元数据，数据仍会保留在hdfs中。
+    
+    6. 建表的时创建分区
+       6.1 建表
+        单个分区（外部表）：
+        CREATE EXTERNAL TABLE  psn3(
+        id int,
+        name string,
+        likes ARRAY < string >,
+        address  MAP < string, string >
+        ) 
+    
+        PARTITIONED BY (age int )  
+    
+        ROW FORMAT
+        DELIMITED FIELDS TERMINATED BY ','
+        COLLECTION ITEMS TERMINATED BY '-'
+        MAP KEYS TERMINATED BY ':';
+    
+        多个分区（内部表）：
+        CREATE  TABLE  psn4(
+        id int,
+        name string,
+        likes ARRAY < string >,
+        address  MAP < string, string >
+        ) 
+    
+        PARTITIONED BY (age int,sex string )  
+    
+        ROW FORMAT
+        DELIMITED FIELDS TERMINATED BY ','
+        COLLECTION ITEMS TERMINATED BY '-'
+        MAP KEYS TERMINATED BY ':';
+
+
+```java
+注意：创建分区的字段不能出现在普通的字段中
+6.2 导数据
+    LOAD DATA LOCAL INPATH '/root/data1'  INTO TABLE psn3 PARTITION (age='10');
+    LOAD DATA LOCAL INPATH '/root/data1'  INTO TABLE psn4 PARTITION (age='10',sex='man');
+    LOAD DATA LOCAL INPATH '/root/data1'  INTO TABLE psn PARTITION (age='10',sex='man');
+    ********创建分区的作用是 提高效率，查询效率更高！**************
+    删除分区的时候: 
+        （1）删除外层分区（目录），可以将整个外层分区删除
+        （2）删除内存分区（目录），会将所有分区为此名字的都删除，比如删除 age=10的分区，会将 sex=man/age=10 和 sex=female/age=10
+
+6.3 增加分区
+    
+ALTER TABLE psn6 ADD PARTITION (sex='man', age=10) location '/user/hive/warehouse/psn6';
+
+测试：
+    无分区时，可以直接将文件传入hdfs的表目录下，查询表可以直接读取；有分区时候，不能自建目录，自建hdfs目录在将文件传入查询表无效；
+6.4 测试命令
+	# ss nal 查看端口
+```

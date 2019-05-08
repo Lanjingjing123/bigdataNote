@@ -1,0 +1,46 @@
+
+################ 注意事项 ########################
+（1）hadoop版本：2.6.5
+（2）getenforce 查看selinux状态
+（3）设置时间
+     #date -s "2018-05-17 09:51:50"
+    //写入到硬件时钟
+    注意：这里说的是系统时间，是linux由操作系统维护的。
+    在系统启动时，Linux操作系统将时间从CMOS中读到系统时间变量中，以后修改时间通过修改系统时间实现。为了保持系统时间与CMOS时间的一致性，Linux每隔一段时间会将系统时间写入CMOS。由于该同步是每隔一段时间（大约是11分钟）进行的，在我们执行date -s后，如果马上重起机器，修改时间就有可能没有被写入CMOS,这就是问题的原因。
+    如果要确保修改生效可以执行如下命令。
+    # hwclock –w
+（4）端口开放，开放nameNode 端口 :50070（client访问），9000（dataNode访问nameNode）
+              开放dataNode端口：50010（数据传输，上传文件遇见的问题）
+1. SSH免秘钥配置，方法一：
+  $ ssh-keygen -t rsa -P '' -f ~/.ssh/id_rsa
+  $ cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+  $ chmod 0600 ~/.ssh/authorized_keys 
+  上面为本机配置，若想A机器登录B机器免秘钥，只需要将 ~/.ssh/id_rsa.pub 文件复制到需要免密登录的机器 的~/.ssh/ 目录下并将他追加到authorized_keys文件中
+  
+  方法二：
+  $ ssh-keygen         生成秘钥
+  $ ssh-copy-id -i nodeX
+
+
+2.JDK环境配置 
+  JAVA_HOME
+  HADOOP_HOME的配置
+
+  export JAVA_HOME=/usr/java/jdk1.7.0_67
+  export HADOOP_HOME=/opt/sxt/hadoop-2.6.5
+  export PATH=$PATH:$JAVA_HOME/bin:$HADOOP_HOME/bin:$HADOOP_HOME/sbin
+
+3. hadoop配置
+   3.1 hadoop中JDK环境配置
+       /opt/sxt/hadoop-2.6.5/etc/hadoop 目录天的 hadoop-env.sh、mapred-env.sh、yarn-env.sh中的JAVA_HOME
+   3.2 hadoop全分布式配置
+
+
+  关闭: stop-dfs.sh
+  开启：start-dfs.sh
+  jps 查看各个角色
+       
+
+
+
+ 

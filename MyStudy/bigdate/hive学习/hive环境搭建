@@ -1,0 +1,143 @@
+引言：hive说明：
+    Hive 是基于Hadoop 的一个数据仓库工具，可以将结构化的数据文件映射为一张数据库表，并提供简单的sql 查询功能，可以将sql 语句转换为MapReduce 任务进行运行。其优点是学习成本低，可以通过类SQL 语句快速实现简单的MapReduce 统计，不必开发专门的MapReduce 应用，十分适合数据仓库的统计分析
+1. 环境准备：
+    hadoop集群(前提) 已经搭好；
+    1.1 mysql；
+    （1）安装mysql：    # yum install -y mysql-server  
+    （2）启动服务：     # service mysqld start
+    （3）设置开机启动： # chkconfig mysqld on
+    （4） 连接mysql:    # mysql
+     (5) 显示数据库：   show databases;
+    （6） show tables;
+    （7） desc user;
+        mysql> select user,host,password from user;
+            +------+-----------+----------+
+            | user | host      | password |
+            +------+-----------+----------+
+            | root | localhost |          |
+            | root | node05    |          |
+            | root | 127.0.0.1 |          |
+            |      | localhost |          |
+            |      | node05    |          |
+            +------+-----------+----------+
+            5 rows in set (0.00 sec)
+    （8）授权：GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY '123' WITH GRANT OPTION;
+        删除；delete from user where host!='%';
+        刷新： flush privileges;
+    （9）重新登录，需要输入密码，则成功:    
+        # mysql -u root -p
+    1.2 HIVE安装：
+        node05 提供mysql数据库，node06作为hive客户端（编译解析 hive中的sql语法——>MapReduce）
+        1.2.1 单用户模式
+            这种存储方式需要在本地运行一个mysql服务器，并作如下配置（下面两种使用mysql的方式，需要将mysql的jar包拷贝到$HIVE_HOME/lib目录下）。 
+        1.2.1.1 进入 hive安装目录进行对配置文件进行配置:   # cd /opt/sxt/apache-hive-1.2.1-bin/conf
+                                    # cp hive-default.xml.template hive-site.xml
+                                    增加 <configuration></configuration> 标签里面的内容
+                <?xml version="1.0"?>  
+                <?xml-stylesheet type="text/xsl" href="configuration.xsl"?>  
+                
+                <configuration>  
+                    <property>  
+                        <name>hive.metastore.warehouse.dir</name>  
+                        <value>/user/hive_remote/warehouse</value>  
+                    </property>  
+                                        
+
+                    <property>  
+                        <name>hive.metastore.local</name>  
+                        <value>true</value>  
+                    </property>  
+                    
+                    <property>  
+                        <name>javax.jdo.option.ConnectionURL</name>  
+                        <value>jdbc:mysql://node05/hive_remote?createDatabaseIfNotExist=true</value>  
+                    </property>  
+                    
+                    <property>  
+                        <name>javax.jdo.option.ConnectionDriverName</name>  
+                        <value>com.mysql.jdbc.Driver</value>  
+                    </property>  
+                    
+                    <property>  
+                        <name>javax.jdo.option.ConnectionUserName</name>  
+                        <value>root</value>  
+                    </property>  
+                    
+                    <property>  
+                        <name>javax.jdo.option.ConnectionPassword</name>  
+                        <value>123</value>  
+                    </property>  
+                </configuration>  
+
+        1.2.1.2
+            启动hive: #hive
+            存在一个隐藏bug: jline的版本不一致，需要将 hadoop 里面的jline 版本替换成hive中高版本 的jline；
+            进行sql操作: hive> create table tbl0(id int ,age int);
+                        hive> insert into tbl0  values(1,9);
+                        hive> select * from tbl0;
+
+        1.2.2 多用户模式
+        1.2.2.1 环境准备
+            node05 mysql数据库,node08作为客户端(metaStore Client)，node07作为服务端（metaStore Server）;
+            node07 需要连接node05 的mysql数据库，需要在lib中加入mysql的驱动包，node08需要启动客户端，需要替换tline在hadoop中的jar包；
+        1.2.2.2 配置文件
+ 
+
+
+            （1） 服务端配置（hive-site.xml）
+                <configuration>  
+                <property>  
+                    <name>hive.metastore.warehouse.dir</name>  
+                    <value>/user/hive/warehouse</value>  
+                </property>  
+                <property>  
+                    <name>javax.jdo.option.ConnectionURL</name>  
+                    <value>jdbc:mysql://node05:3306/hive?createDatabaseIfNotExist=true</value>  
+                </property>  
+                <property>  
+                    <name>javax.jdo.option.ConnectionDriverName</name>  
+                    <value>com.mysql.jdbc.Driver</value>  
+                </property>     
+                <property>  
+                    <name>javax.jdo.option.ConnectionUserName</name>  
+                    <value>root</value>  
+                </property>  
+                <property>  
+                    <name>javax.jdo.option.ConnectionPassword</name>  
+                    <value>123</value>  
+                </property>  
+                </configuration>  
+                
+                启动命令：# hive --service metastore（阻塞型，可以在后台启动）  
+
+            （2） 客户端配置(hive-site.xml,默认为hive-default.xml.template,需要重命名为hive-site.xml)
+                <configuration>    
+                <property>  
+                    <name>hive.metastore.warehouse.dir</name>  
+                    <value>/user/hive/warehouse</value>  
+                </property>  
+                
+                <property>  
+                    <name>hive.metastore.local</name>  
+                    <value>false</value>  
+                </property>  
+                
+                <property>  
+                    <name>hive.metastore.uris</name>  
+                    <value>thrift://node07:9083</value>  
+                </property>  
+                
+                </configuration> 
+            启动客户端：# hive 
+
+
+        1.2.2.3 测试
+            客户端连接hive:
+                # hive
+                hive> create table tbl(id int);
+                hive> insert into table values(10);
+                hive> select * from tbl;
+                    OK
+                    10
+                    Time taken: 0.179 seconds, Fetched: 1 row(s)
+        结束！

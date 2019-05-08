@@ -1,0 +1,28 @@
+1. 变量赋值
+    a="1"
+    echo $a     result: 1
+
+2.数组取值
+    a = (1 2 3) 
+    echo  ${a[2]}   result:3 
+
+3. 打印当前shell的PID(每次开启shell，PID都不一样)
+    echo $$  result: 1142 
+
+4.hash命令
+    hash -r 清除缓存（直接输入 hash 可以查看当前缓存区的命令）
+
+5. yum 安装命令
+    yum install -y man man-pages
+
+6. df -h 查看分区
+
+7.umount 取消挂载  eg：umount /boot   取消磁盘挂载到/boot 目录（注：linux目录都为虚拟目录）
+    mount 挂载     eg:  mount /dev/sda1 /boot   将/dev/sda1（此为一个硬盘分区） 挂载到 linux 虚拟目录 /boot 
+
+8. linux 首先载入的是/boot --> 然后载入 /boot 下的内核kernel /vmlinuz-2.6.32-431.el6.x86_64（注意这里的“/”指的是boot/下，）
+     和 初始化文件initrd /initramfs-2.6.32-431.el6.x86_64.img（"/"指boot/目录下）
+        原因： 因为linux首先启动的时候不能读取文件系统，只能先读取一段很小的程序，这个程序先读取内核，内核在去识别文件系统
+9. /usr 系统安装目录
+    /opt 第三方安装目录
+

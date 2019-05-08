@@ -1,0 +1,27 @@
+1. 下载安装：
+    命令：
+         下载：  wget http://download.redis.io/releases/redis-3.2.10.tar.gz   
+         安装：  tar -xzvf redis-3.2.10.tar.gz
+2. 编译（没有gcc，则需要安装）：
+        #: cd redis-3.2.10
+        #:  make
+        ##########等待编译完成###############3
+        将/redis-3.2.10/redis.conf文件copy一份，放在自己的目录
+        eg: # mkdir /usr/local/myRedis
+            # cp redis.conf /usr/local/myRedis
+
+3. 将编译好之后的src里面的命令放入/usr/local/bin目录下，并将/usr/local/bin配置在环境变量中：
+    # cp redis-server /usr/local/bin/
+    # cp redis-benchmark /usr/local/bin/
+    # cp redis-cli /usr/local/bin/
+
+    #echo $PATH   
+    ##########结果##################################
+    /opt/jdk1.8.0_191/bin:/opt/jdk1.8.0_191/jre/bin:/opt/jdk1.8.0_191/bin:/opt/jdk1.8.0_191/jre/bin:/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin
+
+4. 配置/myRedis/redis.conf
+    #  vim redis.conf
+
+    常用配置：
+        端口号：6379
+        使用守护进程：daemonize yes   (默认为No,这里设置为yes，启动后台守护)

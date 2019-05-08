@@ -1,0 +1,69 @@
+环境配置：需要在HDFS HA搭建的前提下，搭建yarn
+注意端口的开放：8088（node07 node08，用途：网页访问）,8033（node06,node07,node08;作用resourceManager 访问nodeManager,）
+1. 在node05(管理节点)配置基本信息 
+ Configure parameters as follows:
+    1.1 etc/hadoop/mapred-site.xml(可复制mapred-site.xml.template):
+
+    <property>
+        <name>mapreduce.framework.name</name>
+        <value>yarn</value>
+    </property>
+
+
+    1.2 etc/hadoop/yarn-site.xml:
+    
+    <property>
+        <name>yarn.nodemanager.aux-services</name>
+        <value>mapreduce_shuffle</value>
+    </property>
+     <property>
+        <name>yarn.resourcemanager.ha.enabled</name>
+        <value>true</value>
+    </property>
+    <property>
+        <name>yarn.resourcemanager.cluster-id</name>
+        <value>cluster1</value>
+    </property>
+    <property>
+        <name>yarn.resourcemanager.ha.rm-ids</name>
+        <value>rm1,rm2</value>
+    </property>
+    <property>
+        <name>yarn.resourcemanager.hostname.rm1</name>
+        <value>node07</value>
+    </property>
+    <property>
+        <name>yarn.resourcemanager.hostname.rm2</name>
+        <value>node08</value>
+    </property>
+    <property>
+        <name>yarn.resourcemanager.zk-address</name>
+        <value>node06:2181,node07:2181,node08:2181</value>
+    </property>
+    
+2. 将node05配置的mapred-site.xml、yarn-site.xml分发给其他节点
+    # scp yarn-site.xml mapred-site.xml node06:`pwd`
+    # scp yarn-site.xml mapred-site.xml node07:`pwd`
+    # scp yarn-site.xml mapred-site.xml node08:`pwd`
+3. 启动ResourceManager
+    3.1 在node05 使用启动脚本启动：
+        # start-yarn.sh 
+        starting yarn daemons
+        starting resourcemanager, logging to /opt/sxt/hadoop-2.6.5/logs/yarn-root-resourcemanager-node05.out
+        node08: starting nodemanager, logging to /opt/sxt/hadoop-2.6.5/logs/yarn-root-nodemanager-node08.out
+        node07: starting nodemanager, logging to /opt/sxt/hadoop-2.6.5/logs/yarn-root-nodemanager-node07.out
+        node06: starting nodemanager, logging to /opt/sxt/hadoop-2.6.5/logs/yarn-root-nodemanager-node06.out
+        可以看见：nodemanager启动了，但是node07、node08的resourcemanager没有启动
+
+    3.2 在node07、node08启动 resourcemanager
+    # yarn-daemon.sh start resourcemanager
+    starting resourcemanager, logging to /opt/sxt/hadoop-2.6.5/logs/yarn-root-resourcemanager-node07.out
+    # yarn-daemon.sh start resourcemanager
+    starting resourcemanager, logging to /opt/sxt/hadoop-2.6.5/logs/yarn-root-resourcemanager-node08.out
+    注：可用jps产看到 resourcemanager 这个角色
+
+4. 测试MapReduce
+    4.1 进入下面这个目录
+      # cd /opt/sxt/hadoop-2.6.5/share/hadoop/mapreduce
+    4.2 执行下面这个命令，计算
+    # hadoop jar hadoop-mapreduce-examples-2.6.5.jar wordcount /user/root/practice.txt /data/wc/output_005

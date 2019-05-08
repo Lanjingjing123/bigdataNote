@@ -1,0 +1,33 @@
+1、 新建的数据库目录就在*\product\10.1.0\oradata\目录下
+2、 在创建用户之前，先要创建表空间
+格式:  create tablespace 表间名 datafile '数据文件名' size 表空间大小
+如：
+    SQL> create tablespace news_tablespace datafile 'F:\oracle\product\10.1.0\oradata\news\news_data.dbf' size 500M;
+3、 创建用户
+格式:  create user  用户名 identified by 密码  default tablespace 表空间表;
+如：
+    SQL> create user news identified by news default tablespace news_tablespace;
+4、 授权给新建的用户
+ SQL> grant connect,resource to news;  --表示把 connect,resource权限授予news用户
+    SQL> grant dba to news;  --表示把 dba权限授予给news用户
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+oracle 11g 用户名和密码默认区分大小写，可更改alter system set sec_case_sensitive_logon=false 

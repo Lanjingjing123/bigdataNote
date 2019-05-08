@@ -1,0 +1,23 @@
+﻿CentOS6
+1. 编辑 iptables
+    # vi /etc/sysconfig/iptables
+
+2. 增加想要的端口
+    -A INPUT -m state --state NEW -m tcp -p tcp --dport 22 -j ACCEPT
+    ####################需要在上面这一行的下面加端口，例如开放80端口############
+    -A INPUT -m state --state NEW -m tcp -p tcp --dport 80 -j ACCEPT
+3. 重启防火墙
+    service iptables restart
+4. 查看端口是否开启
+    /sbin/iptables -L -n
+	
+centos7
+systemctl stop firewalld.service #停止firewall
+systemctl disable firewalld.service #禁止firewall开机启动
+firewall-cmd --zone=public --remove-port=8080/tcp //关闭端口
+firewall-cmd --zone=public --add-port=1521/tcp --permanent //开启端口
+firewall-cmd --reload //重启防火墙 （一般我们在开放完新的端口后，需要重新启动防火墙）
+开启端口命令的含义：
+--zone #作用域
+--permanent #永久生效，没有此参数重启后失效
+firewall-cmd --state

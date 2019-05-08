@@ -1,0 +1,7 @@
+1. nginx 配置：
+    一个
+2. 命令
+    -history    查看历史bash命令
+    -进入/usr/local/nginx/conf/  vi nginx.conf  编辑
+    -进入/usr/local/nginx/sbin/  ./nginx -t   查看nginx加载的配置是否成功，成功有消息提示
+                                 ./nginx -s  reload 重启，不需要停nginx的服务，直接热启动（重新增加一个worker）

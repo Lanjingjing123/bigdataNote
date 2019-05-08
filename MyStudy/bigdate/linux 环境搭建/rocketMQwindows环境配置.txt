@@ -1,0 +1,19 @@
+##########################rocketMQ搭建##################################
+
+预处理:
+    set ROCKETMQ_HOME=G:\rocketMQ
+1. 启动 nameserv 
+    start mqnamesrv.cmd
+
+2. 启动 broker
+     start mqbroker.cmd -n 127.0.0.1:9876 autoCreateTopicEnable=true
+
+3.进入G:\rocket-tool\rocketmq-externals-master\rocketmq-console\src\main\resources
+ 找到application.properties,编辑客户端端口跟访问的MQ地址
+
+
+4.进入G:\rocket-tool\rocketmq-externals-master\rocketmq-console 目录编译
+mvn clean package -Dmaven.test.skip=true
+
+5. 进入target目录
+java -jar rocketmq-console-ng-1.0.0.jar

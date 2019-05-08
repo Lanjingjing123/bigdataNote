@@ -1,0 +1,232 @@
+linux 安装 oracle
+
+1.环境准备
+    系统：centos6
+    运行内存：1G
+    硬盘：100G（最少配置10G）
+    安装包文件linux.x64_11gR2_database_1of2.zip、linux.x64_11gR2_database_2of2.zip
+    查看系统多少是32位还是64位系统：getconf LONG_BIT
+    安装包文件linux：使用 xShell 中xftp传输
+    关闭防火墙：
+    ##### 先查看防火墙状态 ######
+    service iptables status
+    #### 然后关闭###########
+    service iptables stop （临时关闭）  ;  chkconfig iptables off (永久关闭)  
+
+2. 安装对应依赖包
+    yum -y install binutils compat-libstdc++-33 compat-libstdc++-33.i686 elfutils-libelf elfutils-libelf-devel gcc gcc-c++ 
+    glibc glibc.i686 glibc-common glibc-devel glibc-devel.i686 glibc-headers ksh libaio libaio.i686 libaio-devel libaio-devel.i686 
+    libgcc libgcc.i686 libstdc++ libstdc++.i686 libstdc++-devel make sysstat unixODBC unixODBC-devel
+
+    可用rpm -q binutils 检查是否已经安装
+
+3. 看是否存在2G以上交换分区
+    swapon -s 
+    如果没有需要增加一个交换分区：怎样增加（百度）
+4.添加oracle用户（在root用户下操作）
+    #创建oinstall、dba组 将oracle用户加入组 修改并设定oracle用户密码
+　　groupadd oinstall
+　　groupadd dba
+　　useradd -g oinstall -G dba oracle
+　　passwd oracle （修改oracle用户的密码）
+    设定密码时候会说密码太短，会出现 retype new password ，此时在输入和前面密码一致便可
+
+5.修改内核参数
+##编辑文件/etc/sysctl.conf　　
+　　vi /etc/sysctl.conf
+##配置文件内加入 修改以下参数。如果没有可以自己添加，如果默认值比参考值大，则不需要修改。
+　　fs.aio-max-nr = 1048576
+　　fs.file-max = 6815744
+　　kernel.shmall = 2097152
+　　kernel.shmmax = 536870912
+　　kernel.shmmni = 4096
+　　kernel.sem = 250 32000 100 128
+　　net.ipv4.ip_local_port_range = 9000 65500
+　　net.core.rmem_default = 262144
+　　net.core.rmem_max = 4194304
+　　net.core.wmem_default = 262144
+　　net.core.wmem_max = 1048586
+##执行命令sysctl使其自检并生效
+　　sysctl -p  ；执行之后会有如下三个报错信息：
+                        error: "net.bridge.bridge-nf-call-ip6tables" is an unknown key
+                        error: "net.bridge.bridge-nf-call-iptables" is an unknown key
+                        error: "net.bridge.bridge-nf-call-arptables" is an unknown key
+                        暂不解决！
+
+6. 修改用户资源限制
+
+## 1.修改/etc/security/limits.conf配置文件
+    vi /etc/security/limits.conf
+## 2.配置文件下方加入
+
+    oracle              soft    nproc  2047
+    oracle              hard    nproc  16384
+    oracle              soft    nofile  1024
+    oracle              hard    nofile  65536
+    oracle              soft    stack   10240
+
+## 3.修改/etc/pam.d/login配置文件
+
+    vi /etc/pam.d/login  
+  
+## 4.配置文件内加入
+
+    session required /lib/security/pam_limits.so 
+    session required pam_limits.so
+
+
+7. 创建安装目录
+    ##创建安装目录  /usr/local/oracle     /usr/local/oraInventory     /usr/local/oradata  并赋予组用户及权限
+　　
+　　mkdir -p /usr/local/oracle /usr/local/oraInventory /usr/local/oradata/
+　　chown -R oracle:oinstall /usr/local/oracle /usr/local/oraInventory /usr/local/oradata/
+　　chmod -R 775 /usr/local/oracle /usr/local/oraInventory /usr/local/oradata/
+
+
+8. 创建oraInst.loc 文件
+##创建/etc/oraInst.loc文件
+
+　　vi /etc/oraInst.loc
+
+##文件内加入以下内容
+
+　　inventory_loc=/usr/local/oraInventory
+　　inst_group=oinstall
+
+##保存退出后执行以下命令。设定该文件的用户组及权限。
+
+　　chown oracle:oinstall /etc/oraInst.loc
+　　chmod 664 /etc/oraInst.loc
+
+9. ftp 传送linux安装包 （这里使用xshell）
+##解压缩命令
+    cd /home
+    unzip linux.x64_11gR2_database_1of2.zip
+    unzip linux.x64_11gR2_database_2of2.zip
+
+##待解压完毕后会生成文件夹/home/database 修改其用户组及权限此处直接使用777
+
+    chmod 777 /home/database
+    chown -R oracle.oinstall /home/database
+
+10.准备oracle安装应答模板文件db_install.rsp文件
+
+## 1、该文件默认存放在解压后的安装包内，也就是本例中/home/database/response下，
+##　　 将oracle静默安装所需应答文件全部拷贝至 /usr/local/oracle文件夹下
+
+    cp /home/database/response/* /usr/local/oracle/
+
+## 2、修改安装所需的所有应答文件的所属组及权限
+
+    chown  oracle:oinstall /usr/local/oracle*.rsp
+    chmod 755 /usr/local/oracle/*.rsp
+
+## 3、配置db_install.rsp文件
+
+    vi /usr/local/oracle/db_install.rsp 
+
+## 4、文件内修改相应的参数配置如下：
+
+   oracle.install.option=INSTALL_DB_SWONLY     　　　　　　　　//安装类型,只装数据库软件
+   ORACLE_HOSTNAME=db             　　　　　　　　　　　　　　　 //主机名称（命令hostname查询）
+   UNIX_GROUP_NAME=oinstall       　　　　　　　　　　　　　　　 // 安装组
+   INVENTORY_LOCATION=/usr/local/oraInventory  　　　　　　　　//INVENTORY目录（**不填就是默认值,本例此处需修改,因个人创建安装目录而定）
+　　SELECTED_LANGUAGES=en,zh_CN            　　　　　　　　 　　// 选择语言
+　　ORACLE_HOME=/usr/local/oracle/product/11.2.0/db_1  　　　　// oracle_home *路径根据目录情况注意修改 本例安装路径/usr/local/oracle
+　　ORACLE_BASE=/usr/local/oracle                       　　　 // oracle_base *注意修改
+　　oracle.install.db.InstallEdition=EE          　　　　　　　 // oracle版本
+　　oracle.install.db.isCustomInstall=false      　　　　　　　 //自定义安装，否，使用默认组件
+　　oracle.install.db.DBA_GROUP=dba              　　　　　　　 //dba用户组
+　　oracle.install.db.OPER_GROUP=oinstall        　　　　　　　 //oper用户组
+　　oracle.install.db.config.starterdb.type=GENERAL_PURPOSE   //数据库类型
+　　oracle.install.db.config.starterdb.globalDBName=orcl      //globalDBName
+　　oracle.install.db.config.starterdb.SID=orcl  　　　　　　　 //SID（**此处注意与环境变量内配置SID一致）
+　　oracle.install.db.config.starterdb.memoryLimit=81920      //自动管理内存的内存(M)
+　　oracle.install.db.config.starterdb.password.ALL=oracle    //设定所有数据库用户使用同一个密码
+　　SECURITY_UPDATES_VIA_MYORACLESUPPORT=false       　　　　　 //（手动写了false）
+　　DECLINE_SECURITY_UPDATES=true　　　　　　　　　　　　　　　　　// **注意此参数 设定一定要为true
+
+
+11. 设置环境变量
+
+## 由root切换至创建好的oracle用户
+
+　　su - oracle
+## 修改该用户的用户配置文件
+
+　　vi .bash_profile
+
+## 文件内加入并修改至以下内容
+
+　　export ORACLE_BASE=/usr/local/oracle
+　　export ORACLE_HOME=$ORACLE_BASE/product/11.2.0/db_1
+　　export ORACLE_SID=orcl    
+　　export ORACLE_OWNER=oracle
+　　export PATH=$PATH:$ORACLE_HOME/bin:$HOME/bin
+
+## 保存退出后执行source命令立即生效。
+　　source .bash_profile
+
+
+
+
+12. 在oracle用户开始安装
+
+## 执行命令。
+
+/home/database/./runInstaller -silent -force -ignorePrereq -responseFile /usr/local/oracle/db_install.rsp
+
+##参数说明  
+　　/home/database是安装包解压后的路径，此处根据安装包解压所在位置做修改，因人而异。
+　　runInstaller 是主要安装脚本
+　　-silent 静默模式
+　　-force 强制安装
+　　-ignorePrereq忽略warning直接安装。
+　　-responseFile读取安装应答文件。
+
+13. xshell另起窗口并以root登陆。
+通过 watch -d -n 2 'du -sh /usr/local/oracle' 监测oracle安装目录是否变化。或者直接tail -f命令监测安装log日志。不赘述。 
+
+14、等待安装编译直至出现以下内容，在新创建的root窗口内执行以下提示内的脚本，既/usr/oracle/oraInventory/orainstRoot.sh  /usr/oracle/product/11.2.0/db_1/root.sh。
+　/usr/oracle/oraInventory/orainstRoot.sh
+
+　　/usr/oracle/product/11.2.0/db_1/root.sh
+
+　　To execute the configuration scripts:
+
+　　1. Open a terminal window
+
+　　2. Log in as "root"
+
+　　3. Run the scripts
+
+　　4. Return to this window and hit"Enter" key to continue
+
+ 　　Successfully Setup Software.
+
+15. 安装完成之后 ，再次配置环境变量（确保下面的都有，自测是 jre目录没有安装上，不知道是否有影响）
+vi ~/.bash_profile 在后面追加下面配置
+export ORACLE_HOME=$ORACLE_BASE/product/11.2.0/db_1
+export TNS_ADMIN=$ORACLE_HOME/network/admin
+export PATH=.:${PATH}:$HOME/bin:$ORACLE_HOME/bin
+export PATH=${PATH}:/usr/bin:/bin:/usr/bin/X11:/usr/local/bin
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:$ORACLE_HOME/lib
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:$ORACLE_HOME/oracm/lib
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/lib:/usr/lib:/usr/local/lib
+export CLASSPATH=${CLASSPATH}:$ORACLE_HOME/JRE
+export CLASSPATH=${CLASSPATH}:$ORACLE_HOME/JRE/lib
+export CLASSPATH=${CLASSPATH}:$ORACLE_HOME/jlib
+export CLASSPATH=${CLASSPATH}:$ORACLE_HOME/rdbms/jlib
+export CLASSPATH=${CLASSPATH}:$ORACLE_HOME/network/jlib
+export LIBPATH=${CLASSPATH}:$ORACLE_HOME/lib:$ORACLE_HOME/ctx/lib
+export ORACLE_OWNER=oracle
+export SPFILE_PATH=$ORACLE_HOME/dbs
+export ORA_NLS10=$ORACLE_HOME/nls/data
+保存后执行 source /home/oracle/.bash_profile 命令，使修改生效。
+执行 env 命令，检查环境变量。
+
+
+16. 到这里，oracle 11g 的数据库实例就算是装好了，接下来配置数据库实例的基本参数文件
+cd $ORACLE_HOME/dbs （实际这个目录是/usr/local/oracle/product/11.2.0/db_1/dbs）
+########## 执行下面命令 ############
+cat init.ora | grep -V ^# | grep -V ^$ | > init$ORACLE_SID.ora

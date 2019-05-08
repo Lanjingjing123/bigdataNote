@@ -1,0 +1,8 @@
+1. 建立socket 连接
+exec 7<> /dev/tcp/www.baidu.com/80  其中7为文件描述符
+
+2. 增加报文头
+    echo -e "GET / /HTTP/1.0\n" 1>&7
+
+3. 标准输出到当前bash
+    cat 0>&7

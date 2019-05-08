@@ -1,0 +1,3 @@
+1. eclipse开发一个jar包
+2. 启动jar包
+# hadoop jar MyWC.jar com.sxt.hadoop.mr.MyWC

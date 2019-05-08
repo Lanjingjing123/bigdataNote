@@ -1,0 +1,28 @@
+1.准备3台虚拟机（192.168.174.102 lvs; 192.168.174.103 RS; 192.168.174.104 RS）
+2.配置 etho 网卡中的IP地址DIP、RIP在一个网段上
+3.配置 lvs的VIP
+    -ifconfig etho:0 192.168.174.99/24
+    - echo "1" > /proc/sys/net/ipv4/ip_forward    --------相当于把lvs这台服务器当做路由器使用，负责转发与路由的功能
+4.调整RS的响应，通告级别（每一台RS都配）：
+- echo 1 > /proc/sys/net/ipv4/conf/eth0/arp_ignore
+- echo 2 > /proc/sys/net/ipv4/conf/eth0/arp_announce
+- echo 1 > /proc/sys/net/ipv4/conf/all/arp_ignore
+- echo 2 > /proc/sys/net/ipv4/conf/all/arp_announce
+5. 配置RS的VIP（每一台RS都配）
+-ficonfig lo:3 192.168.174.99 netmask 255.255.255.255  --------环回接口必须配置255.255.255.255 否则访问路由都进入环回接口（环回接口离内核近）
+6. 下载httpd
+    - yum install httpd -yum
+    - /var/www/html
+        - vi index.html(创建这个文件)
+7. 启动httpd
+    - service httpd start
+    客户端能够单独的RS（192.168.174.103；192.168.174.104）
+8. LVS-ipvsadm
+    - yum install ipvsadm -yum
+    - ipvsadm -A -t 192.168.174.99:80 -s rr
+    - ipvsadm -a -t 192.168.174.99:80 -r 192.168.174.103 -g
+    - ipvsadm -a -t 192.168.174.99:80 -r 192.168.174.104 -g
+    - 浏览器访问：访问VIP
+    - ipvsadm -lnc
+    - netstat -natp
+        

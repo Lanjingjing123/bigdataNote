@@ -1,0 +1,51 @@
+﻿查看 系统默认安装的yum:
+rpm -qa|grep yum
+
+赋权限：
+chmod 777 fileName
+
+查看JAVA_HOME的路径：
+echo $JAVA_HOME 
+
+查看当前用户的shell类型：
+echo $0
+
+显示行号（全局）：
+ vi ~/.vimrc
+ 增加：set nu
+
+dos 里面的文件每行最后都有^M,linux下面需要将这些去掉
+第一步：vim 进入该 .sh文件
+第二步：命令模式下：set fileformat=unix
+
+命令里 ps -aux  ｜ grep xxx 是查看某个进程或者服务是否存在
+
+
+firewall-cmd --zone=public --add-port=1521/tcp --permanent //开启端口
+firewall-cmd --reload //重启防火墙 （一般我们在开放完新的端口后，需要重新启动防火墙）
+
+
+压缩
+tar –cvf jpg.tar *.jpg //将目录里所有jpg文件打包成tar.jpg
+tar –czf jpg.tar.gz *.jpg   //将目录里所有jpg文件打包成jpg.tar后，并且将其用gzip压缩，生成一个gzip压缩过的包，命名为jpg.tar.gz
+tar –cjf jpg.tar.bz2 *.jpg //将目录里所有jpg文件打包成jpg.tar后，并且将其用bzip2压缩，生成一个bzip2压缩过的包，命名为jpg.tar.bz2
+tar –cZf jpg.tar.Z *.jpg   //将目录里所有jpg文件打包成jpg.tar后，并且将其用compress压缩，生成一个umcompress压缩过的包，命名为jpg.tar.Z
+rar a jpg.rar *.jpg //rar格式的压缩，需要先下载rar for Linux
+zip jpg.zip *.jpg //zip格式的压缩，需要先下载zip for linux
+
+解压
+tar –xvf file.tar //解压 tar包
+tar -xzvf file.tar.gz //解压tar.gz
+tar -xjvf file.tar.bz2   //解压 tar.bz2
+tar –xZvf file.tar.Z   //解压tar.Z
+unrar e file.rar //解压rar
+unzip file.zip //解压zip
+
+修改配置文件立即生效的命令（点命令）：
+1、修改 /etc/profile  里面的文件
+2、source /etc/profile 或者  . /etc/profile 使之立即生效
+
+动态查看日志：
+tail -f -n 300 fileName
+
+

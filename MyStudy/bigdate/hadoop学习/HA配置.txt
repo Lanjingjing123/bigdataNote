@@ -1,0 +1,124 @@
+端口开启：8485，8020，8480（写journalNode数据，三个journalNode需要开放）
+
+1. 环境配置 两个 nameNode 相互免秘钥（本机选择 node05--主,node06--备 做nameNode,node07,node08做dataNode）
+2. 配置节点
+    hdfs-site.xml配置：
+    2.1 两个nameNode节点的逻辑映射到物理映射
+        <property>
+            <name>dfs.nameservices</name>
+            <value>mycluster</value>
+        </property>
+        <property>
+            <name>dfs.ha.namenodes.mycluster</name>
+            <value>nn1,nn2</value>
+        </property>
+        <property>
+            <name>dfs.namenode.rpc-address.mycluster.nn1</name>
+            <value>node05:8020</value>
+        </property>
+        <property>
+            <name>dfs.namenode.rpc-address.mycluster.nn2</name>
+            <value>node06:8020</value>
+        </property>
+        <property>
+            <name>dfs.namenode.http-address.mycluster.nn1</name>
+            <value>node05:50070</value>
+        </property>
+        <property>
+            <name>dfs.namenode.http-address.mycluster.nn2</name>
+            <value>node06:50070</value>
+        </property>
+    2.2 journalnode 做持久化的配置（需要三个节点）
+        <property>
+            <name>dfs.namenode.shared.edits.dir</name>
+            <value>qjournal://node05:8485;node06:8485;node07:8485/mycluster</value>
+        </property>
+        <property>
+            <name>dfs.journalnode.edits.dir</name>
+            <value>/var/sxt/hadoop/ha/jn</value>
+        </property 
+
+    2.3 HA——配置两nameNode切换
+        <property>
+            <name>dfs.client.failover.proxy.provider.mycluster</name>
+            <value>org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider</value>
+        </property>
+        <property>
+            <name>dfs.ha.fencing.methods</name>
+            <value>sshfence</value>
+        </property>
+        <property>
+            <name>dfs.ha.fencing.ssh.private-key-files</name>
+            <value>/root/.ssh/id_rsa</value>
+        </property>
+        <property>
+            <name>dfs.ha.automatic-failover.enabled</name>
+            <value>true</value>
+        </property>
+
+
+core-site.xml配置：        
+        <property>
+            <name>fs.defaultFS</name>
+            <value>hdfs://mycluster</value> 
+        </property>
+        <property>
+            <name>ha.zookeeper.quorum</name>
+            <value>node06:2181,node07:2181,node08:2181</value>
+         </property>
+
+将 hdfs-site.xml 和 core-site.xml分别分发给node06,node07,node08;
+
+3. 启动过程
+   3.1 先启动journalnode (node05,node06,node07分别启动)
+        # hadoop-daemon.sh start journalnode
+   3.2 nameNode(node05) 进行格式化,并启动（）
+        # hdfs namenode -format
+        # hadoop-daemon.sh  start namenode
+   3.3 nameNode(node06) 启动(用于同步主节点node05)
+        # hdfs namenode -bootstrapStandby
+   3.4 启动ZKFC
+        # hdfs zkfc -formatZK
+   3.5 启动 nameNode(node05):
+        # start-dfs.sh 
+        日志信息：
+            Starting namenodes on [node05 node06]
+            node05: namenode running as process 20132. Stop it first.
+            node06: starting namenode, logging to /opt/sxt/hadoop-2.6.5/logs/hadoop-root-namenode-node06.out
+            node07: starting datanode, logging to /opt/sxt/hadoop-2.6.5/logs/hadoop-root-datanode-node07.out
+            node08: starting datanode, logging to /opt/sxt/hadoop-2.6.5/logs/hadoop-root-datanode-node08.out
+            node06: starting datanode, logging to /opt/sxt/hadoop-2.6.5/logs/hadoop-root-datanode-node06.out
+            Starting journal nodes [node05 node06 node07]
+            node05: journalnode running as process 20053. Stop it first.
+            node07: journalnode running as process 5145. Stop it first.
+            node06: journalnode running as process 15796. Stop it first.
+            Starting ZK Failover Controllers on NN hosts [node05 node06]
+            node05: starting zkfc, logging to /opt/sxt/hadoop-2.6.5/logs/hadoop-root-zkfc-node05.out
+            node06: starting zkfc, logging to /opt/sxt/hadoop-2.6.5/logs/hadoop-root-zkfc-node06.out
+
+   3.6 连接zookeeper，node05与node06竞争锁
+    # zkCli.sh -server  node08:2181
+    #  ls /hadoop-ha/mycluster
+        可以看见以下信息：
+            [ActiveBreadCrumb, ActiveStandbyElectorLock]
+    #  get /hadoop-ha/mycluster/ActiveStandbyElectorLock
+        可以看见以下信息：
+            myclusternn1node05 锟?(锟?  
+            cZxid = 0x200000007
+            ctime = Fri Mar 22 01:40:51 CST 2019
+            mZxid = 0x200000007
+            mtime = Fri Mar 22 01:40:51 CST 2019
+            pZxid = 0x200000007
+            cversion = 0
+            dataVersion = 0
+            aclVersion = 0
+            ephemeralOwner = 0x169a133d69c0000
+            dataLength = 30
+            numChildren = 0
+        说明：第一行可以看出 node05为集群的主nameNode（竞争到了锁）
+
+    单独启动 zkfc:
+        # hadoop-daemon.sh start zkfc
+
+
+

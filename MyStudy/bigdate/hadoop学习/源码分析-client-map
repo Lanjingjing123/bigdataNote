@@ -1,0 +1,25 @@
+1. client 源码分析
+    想使用hdfs的文件系统作为输入：输入大部分为 hadoop提供的这一套输入格式化类:InputFormat->FileInputFormat->TextInputFormat
+    注：输入格式化来进行切面计算
+    主要功能：1.jar，
+             2.切片清单信息，完成计算向数据移动，切片信息可能包含多个Bolock块，存在网络IO
+    1.1 HDFS输入格式化类进行切片计算
+        1.1.1 切片的默认值 1:1  切片大小:bolock块大小
+              可通过 设置    long minSize = Math.max(getFormatMinSplitSize(), getMinSplitSize(job));
+                            long maxSize = getMaxSplitSize(job);
+              来个性化配置块的大小
+        1.1.2 计算切片对应的block块索引
+        1.1.3 切片比block块大，切片的一部分包含再block快中，使用该block块的位置信息，剩下部分的切片对应的block快，靠网络IO拉取
+              切片和block块相等，该block快的位置信息给切片用，程序移动到该位置进行计算
+              切片比block块小，一个block快对应几个切片（假设3个），这个block块的位置信息（假设3个副本）给这3个切片用，三个节点运行计算三个切片
+
+    注：一个切片只能对应一个文件，不能是多个文件；文件存在允许切片和不允许切片（压缩文件不允许切片）
+
+
+    2. map-Input 
+        
+    3. map-Output
+    4. reduce
+        reduce的比较器有三种：分组，排序，key
+        核心:迭代器（真假迭代器）
+        假迭代器：读取一行，预读取下一行与本行是否具有相同的key，从而保证迭代器只读取相同的key为一组

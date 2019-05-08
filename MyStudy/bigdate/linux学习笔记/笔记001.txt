@@ -1,0 +1,12 @@
+1 ifconfig 命令    
+    1.1 type ifconfig  可以显示路径
+    1.2 file /sbin/ifconfig  可以看到是 ELF 二进制文件
+2. yum 命令
+    1.1 type yum    result: /usr/bin/yum
+    1.2 file /usr/bin/yum   result: /usr/bin/yum: a /usr/bin/python script text executable
+==================上面两种都为外部命令===============================
+
+
+==================下面为外部命令=====================================
+1. cd 
+    1.1 type cd    resule:  cd is a shell builtin(内部命令)

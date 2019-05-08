@@ -1,0 +1,10 @@
+1. 配置环境变量
+    HADOOP_USER_NAME=root
+    HADOOP_HOME=E:\bigData\code\hadoop-2.6.5
+    PATH=E:\bigData\code\hadoop-2.6.5\bin
+2. 将E:\bigData\code\hadoop-2.6.5\bin\hadoop.dll 放入 C:\Windows\System32目录下
+3. 将插件hadoop-eclipse-plugin-2.6.0.jar放入eclipse插件中
+4.重启计算机
+
+上传大小：
+    hdfs dfs -D dfs.blocksize=5242880 -put practice.txt 上传文件指定 blocksize = 5MB

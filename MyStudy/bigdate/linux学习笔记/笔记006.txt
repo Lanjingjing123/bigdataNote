@@ -1,0 +1,47 @@
+﻿                                    用户登录
+
+
+1. 添加用户
+    命令： useradd  userName
+    eg :  useradd   ljj
+2. 删除用户
+    命令： userdel  userName
+    eg:    userdel  ljj
+    注：删除时候需要删除 ：1./home 目录下的用户目录；
+                         2. /var/spool/mail/ 目录下的用户目录
+
+3. 修改用户密码
+    命令：passwd    userName
+        eg： passwd     ljj 
+
+4.添加属组：
+    命令：groupadd  groupName
+    eg:   groupadd  share 
+
+    ################打印用户属主，属组##################
+    id userName
+    eg: id ljj
+
+    ###########给用户增加属组################
+    语法：usermod -G  groupName  userName
+    eg:   usermod -G  share     ljj
+
+    ##########给目录改变属组###########
+    语法：chown user:group  fileName
+    eg:   chown root:share  share      将share文件的属主属组变为 root跟share
+
+5. 改变文件权限
+    语法： chomod   augo+[rwx]      fileName        注：augo 分别代表：all、user、group、other
+    eg:     chomod  g+w     share           给share目录增加组的write权限
+    语法：  chmod   777  fileName
+                111 111 111 
+    赋权限（递归）：chmod  -R 777 filename/     给filename目录下所有文件都赋777权限
+
+
+6. 给目录增加权限，让新创建的目录继承父目录的权限
+$ sudo chmod -R 2775 /var/www/reports/
+解释上面的：2775
+2 - 打开 setGID 位，意味着新创建的子文件继承与目录相同的组，新创建的子目录继承父目录的 setGID 位。
+7 - 为所有者提供 rwx 权限。
+7 - 给组 rwx 权限。
+5 - 为其他人提供 rx 权限。

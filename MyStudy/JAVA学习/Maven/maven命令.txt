@@ -1,0 +1,2 @@
+1. 查看jar 包是否有冲突：
+    mvn -Dverbose dependency:tree  

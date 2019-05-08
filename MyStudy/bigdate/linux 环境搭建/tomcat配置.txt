@@ -1,0 +1,42 @@
+linux 配置两个tomcat步骤:
+    1. 设置JDK环境变量（JAVA_HOME,JRE_HOME,CLASSPATH）
+        export JAVA_HOME=/opt/jdk1.8.0_191
+        export JRE_HOME=/opt/jdk1.8.0_191/jre
+        export CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
+        export PATH=$JAVA_HOME/bin:$JRE_HOME/bin:$PATH
+
+    2. 设置 TOMCAT 启动的环境变量（这里使用两台，配置两台）
+        ###############first tomcat #########
+        export CATALINA_HOME=/opt/tomcat1
+        export CATALINA_BASE=/opt/tomcat1
+        export TOMCAT_HOME=/opt/tomcat1
+
+        ###############second tomcat#########
+        export CATALINA_2_HOME=/opt/tomcat2
+        export CATALINA_2_BASE=/opt/tomcat2
+        export TOMCAT_2_HOME=/opt/tomcat2
+
+    3. 进入 第二台Tomcat 的bin 目录编辑 catalina.sh
+        在 catalina.sh文件这一行 # OS specific support.  $var _must_ be set to either true or false.下面
+        增加如下代码：
+                    export CATALINA_BASE=$CATALINA_2_BASE
+                    export CATALINA_HOME=$CATALINA_2_HOME
+    4. 进入第二台Tomcat 的confg目录，编辑 server.xml:
+        　　server.xml文件中有三个端口设置
+        　　<Server port="8005" shutdown="SHUTDOWN"> ：关闭时使用
+        　　<Connector port="8080" protocol="HTTP/1.1" connectionTimeout="20000" redirectPort="8443" /> ： 一般应用使用
+        　　<Connector port="8009" protocol="AJP/1.3" redirectPort="8443" />：为AJP端口，即容器使用，如 APACHE能通过AJP协议访问Tomcat的8009端口
+            修改  8005，8080，8009 三个端口
+
+    5. 启动两台Tomcat ，可用：ps -ef |grep tomcat 查看到两个进程，也可以用 netstat -anpt|grep 8080 查看端口是否已经连接了
+
+    6. 本机电脑打开网页：http://192.168.174.101：8080  http://192.168.174.101：8088,
+    发现并不能打开，是因为虚拟机的防火墙未关闭，应先关闭防火墙；防火墙命令如下：
+                                CentOS6 关闭防火墙（CentOs7不是此命令）            CentOs7 关闭防火墙命令：
+                                1 关闭防火墙-----service iptables stop             systemctl stop firewalld.service #停止firewall
+                                2 启动防火墙-----service iptables start             systemctl disable firewalld.service #禁止firewall开机启动
+                                3 重启防火墙-----service iptables restart           firewall-cmd --state
+                                4 查看防火墙状态--service iptables status               
+                                5 永久关闭防火墙--chkconfig iptables off 
+                                6 永久关闭后启用--chkconfig iptables on
+                                --------------------

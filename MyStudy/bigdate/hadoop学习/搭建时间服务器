@@ -1,0 +1,49 @@
+时间服务器配置：
+1. 检查ntp是否安装
+    # rpm -qa |grep ntp
+
+    ntp-4.2.6p5-15.el6.centos.x86_64
+    ntpdate-4.2.6p5-15.el6.centos.x86_64
+    fontpackages-filesystem-1.41-1.1.el6.noarch
+
+2. 修改ntp配置文件
+    2.1 修改1 （授权192.168.43.0-192.168.43.255网段上的所有机器可以从这台机器查询和同步时间）
+        #restrict 192.168.43.0 mask 255.255.255.0 nomodify notrap 
+        restrict 192.168.43.0 mask 255.255.255.0 nomodify notrap
+
+    2.2 修改2  集群在局域网中，不使用其他互联网上的时间
+        server 0.centos.pool.ntp.org iburst
+        server 1.centos.pool.ntp.org iburst
+        server 2.centos.pool.ntp.org iburst
+        server 3.centos.pool.ntp.org iburst
+        将上面注释掉（如下）：
+        #server 0.centos.pool.ntp.org iburst
+        #server 1.centos.pool.ntp.org iburst
+        #server 2.centos.pool.ntp.org iburst
+        #server 3.centos.pool.ntp.org iburst
+    2.3 添加  当改结点丢失网络连接，依然可以采用本地时间作为时间服务器为集群中的其他节点提供时间同步
+        server 127.127.1.0
+        fudge 127.127.1.0 stratum 10
+
+3. 修改/etc/sysconfig/ntpd文件
+    让硬件时间与系统时间同步：vi /etc/sysconfig/ntpd 添加如下一行：
+        SYNC_HWCLOCK=yes
+
+
+4. 重新启动ntpd服务
+  以root用户启动:
+    # service ntpd status   ------查看状态
+    # service ntpd start    ------开始
+
+5. 设置ntpd服务开机启动
+   # chkconfig ntpd on
+
+集群中其他机器(必须root用户)：
+    配置定时任务
+
+
+6. 建议配置时间服务器
+    6.1 安装
+    $ yum install -y ntp
+    6.2 同步时间服务器
+    $ ntpdate  ntp7.aliyun.com
